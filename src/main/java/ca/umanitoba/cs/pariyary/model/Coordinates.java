@@ -11,7 +11,7 @@ public class Coordinates {
     public Coordinates(int x, int y) {
         this.x = x;
         this.y = y;
-        checkCooridnates();
+        checkCoordinates();
     }
 
     public Coordinates(String coordString) throws IllegalArgumentException {
@@ -29,7 +29,7 @@ public class Coordinates {
         } catch (NumberFormatException nfe) {
             throw new IllegalArgumentException("Only Integers are supported");
         }
-        checkCooridnates();
+        checkCoordinates();
     }
 
 
@@ -43,7 +43,7 @@ public class Coordinates {
 
 
     //Invariant Checks
-    public void checkCooridnates() {
+    public void checkCoordinates() {
         Preconditions.checkNotNull(x, "x can't be null");
         Preconditions.checkNotNull(y, "y can't be null");
     }
@@ -55,7 +55,7 @@ public class Coordinates {
         boolean isEqual = false;
 
         if (o != null && getClass() == o.getClass()) {
-            other.checkCooridnates();
+            other.checkCoordinates();
             isEqual = (x == other.x && y == other.y);
         }
 

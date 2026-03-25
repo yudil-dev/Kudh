@@ -1,12 +1,16 @@
 package ca.umanitoba.cs.pariyary;
 
 import ca.umanitoba.cs.pariyary.model.*;
-import ca.umanitoba.cs.pariyary.output.MapPrinter;
+import ca.umanitoba.cs.pariyary.output.ActivityPrinter;
+import ca.umanitoba.cs.pariyary.output.MapActivityPrinter;
+import ca.umanitoba.cs.pariyary.output.ObstalcePrinter;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Scanner;
 
 import static ca.umanitoba.cs.pariyary.output.UserPrinter.printSummaryUserActivity;
@@ -21,14 +25,14 @@ public class REPL {
     }
 
     ExerciseTracker et = new ExerciseTracker();
-    MapPrinter mp = new MapPrinter();
+    MapActivityPrinter mp = new MapActivityPrinter();
     Scanner scanner = new Scanner(System.in);
 
     public void startREPL() {
 
         boolean end = false;
-        while (!end) {
 
+        while (!end) {
 
             if (et.getMap() != null) {
 
@@ -151,7 +155,6 @@ public class REPL {
     }
 
     public int getActivityID() {
-        Activity activity = null;
         System.out.println();
         HashMap<Integer, Activity> activityDict = et.getUser().getHistoryActivity();
 
@@ -202,49 +205,50 @@ public class REPL {
         return obstacleID;
     }
 
-    public Obstacle createUserInputObstacle() {
+    public List<Coordinates> createUserListCoords() {
 
-        Obstacle obstacle = new Obstacle();
-
-        //get coordinates from user
+        List<Coordinates> coords = new ArrayList<>();
         boolean end = false;
         while (!end) {
-
-            System.out.println("\n" + obstacle);
+            System.out.println(coords);
             System.out.print("""
                     1 Add Coordinates
                     2 Remove Coordinates
-                    0 Finalize Obstacle (Exit)
+                    0 Finalize List (Exit)
                     
                     Enter (1, 2 or 0):\s""");
 
             int userSelection = getIntInput();
 
             if (userSelection == 1) {
-
-                obstacle.addCoord(createUserInputCoord());
-
+                coords.add(createUserInputCoord());
             } else if (userSelection == 2) {
-                obstacle.removeCoord(createUserInputCoord());
-            }else if (userSelection == 0) {
-                //uncommenting this piece of code makes it so that the invariant doesn't get triggered
-//                if (obstacle.getLocation().isEmpty()) {
-//                    System.out.println("Obstacle must contain at least one coordinate.\n");
-//                } else {
+                coords.remove(createUserInputCoord());
+            } else if (userSelection == 0) {
                 end = true;
-
             } else {
-                System.out.print("Invalid Input, Try again: ");
+                System.out.print("Invalid Input! Try again ");
             }
         }
+        return coords;
+    }
 
-        obstacle.checkObstacleFinalization();
+    public ObstacleType getUserObstacleType() {
+        System.out.println("\nEnter Obstacle Type (tree, building, rock): ");
+        var stringActivityType = scanner.nextLine().toUpperCase();
+        return ObstacleType.valueOf(stringActivityType);
+    }
 
+    public Obstacle createUserInputObstacle() {
+
+        ObstacleType type = getUserObstacleType();
+        System.out.println("Enter location for obstacle: ");
+        Obstacle obstacle = new Obstacle(type, createUserListCoords());
         System.out.printf("Obstacle Created Successfully\n%s\n", obstacle);
         return obstacle;
     }
 
-    public ActivityType getUserActitiyType() {
+    public ActivityType getUserActivityType() {
 
         System.out.println("\nEnter Activity Type (walk, run, bike): ");
         var stringActivityType = scanner.nextLine().toUpperCase();
@@ -291,41 +295,17 @@ public class REPL {
 
     public Activity createUserInputActivity() {
 
-        ActivityType activityType = getUserActitiyType();
+        ActivityType activityType = getUserActivityType();
+
         System.out.print("Start Date  ");
         LocalDateTime startDT = getUserDT();
         System.out.print("End Date  ");
         LocalDateTime endDT = getUserDT();
 
-        Activity activity = new Activity(activityType, startDT, endDT);
+        System.out.print("Activity Route\n");
+        List<Coordinates> route = createUserListCoords();
 
-        boolean end = false;
-
-        while (!end) {
-
-            System.out.println("\n" + activity);
-            System.out.print("""
-                    \n1 Add Coordinates
-                    2 Remove Coordinates
-                    0 Finalize Route (Exit)
-                    
-                    Enter (1, 2 or 0):\s""");
-
-            int userSelection = getIntInput();
-
-            if (userSelection == 1) {
-                activity.addCoordinates(createUserInputCoord());
-            }  else if (userSelection == 2) {
-                activity.removeCoordinates(createUserInputCoord());
-            } else if (userSelection == 0) {
-                end = true;
-            } else {
-                System.out.print("Invalid Input, Try again: ");
-            }
-        }
-
-        activity.checkActivity();
-        return activity;
+        return new Activity(activityType, startDT, endDT, route);
     }
 
     public int getIntInput() {
@@ -350,9 +330,7 @@ public class REPL {
         String coordString = scanner.nextLine();
         System.out.println();
 
-        Coordinates coord = new Coordinates(coordString);
-
-        return coord;
+        return new Coordinates(coordString);
 
         //Input Validation
         //Coordinates coord = null;
@@ -373,30 +351,8 @@ public class REPL {
 
     }
 
-    public void print2ndMenu() {
-        System.out.print("""
-                        \n1 Help
-                        2 ADD OBSTACLE
-                        3 ADD ACTIVITY
-                        4 SHOW MAP
-                        5 SHOW OBSTACLES
-                        6 SHOW ACTIVITIES
-                        7 SHOW ACTIVITY
-                        8 REMOVE ACTIVITIES
-                        9 REMOVE OBSTACLES
-                        10 REMOVE MAP
-                        11 EXIT
-                        Enter your choice (any number from 1 - 11):\s""");
-    }
-
-    public void print1stMenu() {
-        System.out.print("""
-                \n1. Help
-                2. Add Map
-                Enter your choice (1 or 2):\s""");
-    }
-
     public void addObstacleREPL() {
+
         Obstacle obstacle = createUserInputObstacle();
         System.out.println("Adding to Map...");
         et.getMap().addObstacle(obstacle);
@@ -423,7 +379,8 @@ public class REPL {
         System.out.println();
 
         for (Obstacle o : et.getMap().getObstacles().values()) {
-            System.out.println(o + "\n");
+            ObstalcePrinter.print(o);
+            System.out.println();
         }
     }
 
@@ -431,18 +388,19 @@ public class REPL {
         System.out.println();
 
         for (Activity a : et.getUser().getHistoryActivity().values()) {
-            System.out.println(a + "\n");
+            ActivityPrinter.print(a);
+            System.out.println();
         }
     }
 
     public void showActivityREPL() {
         int aIDToShow = getActivityID();
-        mp.printActivity(et.getUser().getHistoryActivity().get(aIDToShow) , et.getMap());
+        mp.printMap(et.getMap(), et.getUser().getHistoryActivity().get(aIDToShow).getRoute());
     }
 
     public void addActivityREPL() {
         Activity activity = createUserInputActivity();
-        et.addActivityToUserAndPlane(activity);
+        et.addActivityToUser(activity);
         System.out.println();
 //        mp.printMap(et.getMap());
     }
@@ -450,9 +408,8 @@ public class REPL {
     public void removeActivityREPL() {
         int idToRemove = getActivityID();
         if  (idToRemove != -1) {
-            et.removeActivityFromUserAndPlane(et.getUser().getHistoryActivity().get(idToRemove));
+            et.removeActivityFromUser(et.getUser().getHistoryActivity().get(idToRemove));
         }
-
 
     }
 
@@ -462,7 +419,7 @@ public class REPL {
                 . - Empty Location
                 > - Route of an activity""");
         System.out.println();
-        mp.printMap(et.getMap());
+        mp.printMap(et.getMap(), et.getUser().getActivitiesOccupiedCoords());
         System.out.println();
         printSummaryUserActivity(et.getUser());
     }

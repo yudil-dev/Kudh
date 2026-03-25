@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
+import java.util.List;
 
 public class Activity {
 
@@ -13,20 +14,20 @@ public class Activity {
 
     private final ActivityType type;
     private final LocalDateTime startDateTime, endDateTime;
-    private final ArrayList<Coordinates> route;
+    private final List<Coordinates> route;
     private final int activityID;
 
     public Activity(ActivityType type,
                     LocalDateTime startDateTime,
-                    LocalDateTime endDateTime) {
+                    LocalDateTime endDateTime, List<Coordinates> route) {
 
         this.activityID = ++countActivity;
         this.type = type;
         this.startDateTime = startDateTime;
         this.endDateTime = endDateTime;
-        this.route = new ArrayList<>();
+        this.route = route;
 
-        //checkActivity();
+        checkActivity();
     }
 
     public void addCoordinates(Coordinates coordinates) {
@@ -61,11 +62,11 @@ public class Activity {
     }
 
 
-    public ArrayList<Coordinates> getRoute() {
+    public List<Coordinates> getRoute() {
         return route;
     }
 
-    int getActivityID() {
+    public int getActivityID() {
         return activityID;
     }
 
@@ -73,15 +74,16 @@ public class Activity {
         return startDateTime;
     }
 
+    public LocalDateTime getEndDateTime() {
+        return endDateTime;
+    }
+
+    public ActivityType getType() {
+        return type;
+    }
 
     public String toString() {
-        return String.format("""
-                Activity ID = %d
-                Type = %s
-                StartDateTime = %s
-                EndDateTime = %s
-                Route = %s
-                """,
+        return String.format("[Activity ID: %d, Type: %s, StartDateTime: %s EndDateTime: %s Route: %s]",
                 activityID,
                 type,
                 startDateTime.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)),
@@ -91,7 +93,7 @@ public class Activity {
 
 
     //Invariant Checks
-    public void checkActivity() {
+    private void checkActivity() {
         Preconditions.checkNotNull(type, "activityType can't be null");
 
         Preconditions.checkNotNull(startDateTime, "startDateTime can't be null");

@@ -3,49 +3,57 @@ package ca.umanitoba.cs.pariyary.model;
 import com.google.common.base.Preconditions;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Obstacle {
 
+
     private static int countObstacle = 0;
 
+    private final ObstacleType type;
     private final int obstacleID;
-    private final ArrayList<Coordinates> location;
+    private final List<Coordinates> location;
 
 
-    public Obstacle(ArrayList<Coordinates> location) {
+    public Obstacle(ObstacleType type, List<Coordinates> location) {
+        this.type = type;
         this.location = location;
         obstacleID = ++countObstacle;
-        checkObstacleFinalization();
+        checkObstacle();
     }
 
-    public Obstacle() {
-        this.location = new ArrayList<>();
-        obstacleID = ++countObstacle;
-    }
+//    public Obstacle() {
+//        this.location = new ArrayList<>();
+//        obstacleID = ++countObstacle;
+//    }
 
-
+//
     public void addCoord(Coordinates coordToAdd) {
 
         if (!location.contains(coordToAdd)) {
             location.add(coordToAdd);
         }
+        checkObstacle();
 
-        checkObstacleLocation();
     }
 
     public void removeCoord(Coordinates coordToRemove) {
         location.remove(coordToRemove);
+        checkObstacle();
     }
 
 
     @Override
     public String toString() {
-        return String.format("ObstacleID = %d\nLocation: %s", obstacleID, location);
+        return String.format("[ObstacleID: %d, Type: %s, Location: %s]", obstacleID, type, location);
     }
 
-
     //Getters
-    public ArrayList<Coordinates> getLocation() {
+    public  ObstacleType getType() {
+        return type;
+    }
+
+    public List<Coordinates> getLocation() {
         return location;
     }
 
@@ -74,16 +82,10 @@ public class Obstacle {
         return obstacleID;
     }
 
-
-    //Invariant Checks
-    public void checkObstacleFinalization() {
-        checkObstacleLocation();
+    //Invariant
+    public void checkObstacle() {
         Preconditions.checkNotNull(location, "Location can't be null");
         Preconditions.checkState(!location.isEmpty(), "Location can't be empty");
-    }
-
-    public void checkObstacleLocation() {
-        Preconditions.checkNotNull(location, "Location can't be null");
         for (var coordinate : location) {
             Preconditions.checkNotNull(coordinate, "Coordinates can't be null");
         }

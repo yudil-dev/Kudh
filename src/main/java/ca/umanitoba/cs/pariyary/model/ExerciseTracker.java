@@ -5,13 +5,13 @@ import com.google.common.base.Preconditions;
 public class ExerciseTracker {
 
     private Map world;
-    private User user;
+    private final User user;
 
     public ExerciseTracker(User user, Map world) {
         this.user = user;
         this.world = world;
 
-        checkExerciseTracker();
+//      checkExerciseTracker();
     }
 
     public ExerciseTracker() {
@@ -29,7 +29,6 @@ public class ExerciseTracker {
 
     public void setWorld(Map world) {
         Preconditions.checkNotNull(world);
-        world.checkMap();
         this.world = world;
     }
 
@@ -41,25 +40,40 @@ public class ExerciseTracker {
     //checks if activity's route is within map and not is not obstructing with obstacles
     private void checkActivity(Activity activity) {
         Preconditions.checkNotNull(activity, "Activity can't be null");
-        Preconditions.checkState(world.isRouteWithinMap(activity.getRoute()), "Activity Route not within Map's Bounds");
-        Preconditions.checkState(world.isObstacleBlockRoute(activity.getRoute()), "Activity Route goes through Obstacle");
+        Preconditions.checkState(isActivityRouteWithinMap(activity), "Activity Route not within Map's Bounds");
+        Preconditions.checkState(isObstacleBlockActivityRoute(activity), "Activity Route goes through Obstacle");
     }
 
-    public void addActivityToUserAndPlane(Activity activity) {
+    private boolean isActivityRouteWithinMap(Activity activity) {
+        for (Coordinates c : activity.getRoute()) {
+            if (!world.coordWithinMap(c)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean isObstacleBlockActivityRoute(Activity activity) {
+        for (Coordinates c : activity.getRoute()) {
+            if (world.getOccupiedCoords().contains(c)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void addActivityToUser(Activity activity) {
         checkActivity(activity);
         user.addActivity(activity);
-        world.addRouteToPlane(activity.getRoute());
     }
 
-    public void removeActivityFromUserAndPlane(Activity activity) {
+    public void removeActivityFromUser(Activity activity) {
         checkActivity(activity);
         user.removeActivity(activity);
-        world.removeRouteFromPlane(activity.getRoute());
     }
 
     public void removeWorld() {
         this.world = null;
     }
-
 
 }

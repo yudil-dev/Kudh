@@ -40,7 +40,7 @@ Each grid in the matrix represents an area of 1 km²
 ### Building and Running the REPL
 
 The project has been built and tested to be run in IntelliJ. Open the project
-there, open the "ca.umantioba.ca.havensz1" folder, then the "REPL.java" file.
+there, open the "ca.umantioba.ca.pariyary" folder, then the "REPL" file.
 Finally, click "Current File" in the top menu bar!
 
 - If map doesn't exist, user doesn't get access to anything other than ADD MAP, entering HELP
@@ -77,22 +77,28 @@ classDiagram
     class ExerciseTracker {
         - User user
         - Map world
-        void addActivityToUserAndPlane(Activity)
-        void removeActivityFromUserAndPlane(Activity)
+        void addActivityToUser(Activity)
+        void removeActivityFromUser(Activity)
         void removeWorld()
+        boolean isObstacleBlockRoute(List~Coordinates~)
+        boolean isRouteWithinMap(List~Coordinates~)
     }
 
     class User {
-        - Text name
-        - Collection~Activity~ historyActivity
+        - String name
+        - HashMap~Integer, Activity~ historyActivity
+        - Collection~Coordinates~ activitiesOccupiedCoords;
+
         void removeActivity(Activity)
         void addActivity(Activity)
     }
 
     class Activity {
+        - static int countActivity;
         - ActivityType type
-        - DateTime startDateTime, endDateTime
+        - LocalDateTime startDateTime, endDateTime
         - List~Coordinates~ route
+        - int activityID
         void addCoordinates(Coordinates)
         void removeCoordinates(Coordinates)
     }
@@ -104,30 +110,31 @@ classDiagram
     }
 
     class Map {
-        - Matrix plane
-        - PositiveNumber matrixWidth
-        - PositiveNumber matrixHeight
-        - Coordinates userLocation
-        - Collection~Obstacle~ obstacles
+        - Cell[][] plane
+        - int width
+        - int height
+
+        - HashMap~Integer, Obstacle~ obstacles
+        - Collection~Coordinates~ occupiedCoords;
+
         void addObstacle(Obstacle)
         void removeObstacle(Obstacle)
-        void addRouteToPlane(Collection~Coordinates~)
-        void removeRouteFromPlane(Collection~Coordinates~)
-        boolean isObstacleBlockRoute(Collection~Coordinates~)
-        boolean isRouteWithinMap(Collection~Coordinates~)
+
+        boolean coordsWithinMap(Coordinates)
+
     }
 
     class Obstacle {
-        - static positiveNumber countObstacle;
-        - positiveNumber obstacleID;
-        - Collection~Coordinates~ location
+        - static int countObstacle;
+        - int obstacleID;
+        - ArrayList~Coordinates~ location
         void addCoordinates(Coordinates) ;
         void removeCoordinates(Coordinates) ;
     }
 
     class Coordinates {
-        - PositiveNumber x
-        - PositiveNumber y
+        - int x
+        - int y
     }
 
     <<enumuration>> ActivityType
@@ -144,13 +151,14 @@ classDiagram
         * name != null
         * name.length() > 0
         * loop through historyActivity to ensure no null Activities exists.
+        * loop through activitiesOccupiedCoords to ensure no null Coordinates exists.
     "
     note for Activity "Invariants:
         * type != null
         * startDateTime, endDateTime != null
         * startDateTime &lt; endDateTime
         * route != null
-        * route.length > 0
+        * route.size > 0
         * loop through route to ensure no null Coordinates
         "
     note for Map "Invariants:
@@ -162,12 +170,10 @@ classDiagram
         &emsp;- obstacle is within map's bounds
         &emsp;- obstacle doesn't occupy coordinates occupied by other obstacles
         &emsp;- obstacle is rectangular
-        * userLocation != null
-        * userLocation within Map's bounds
     "
     note for Obstacle "Invariants:
         * location != null
-        * location.length > 0
+        * location.size > 0
         * loop through location to ensure no null Coordinates exists
     "
     note for Coordinates "Invariants:

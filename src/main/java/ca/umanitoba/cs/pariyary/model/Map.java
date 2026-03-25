@@ -1,26 +1,35 @@
 package ca.umanitoba.cs.pariyary.model;
 import com.google.common.base.Preconditions;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 
 public class Map {
 
-    public static HashSet<Coordinates> occupiedCoords = new HashSet<>();
 
-    private final int PLANE_WIDTH;
-    private final int PLANE_HEIGHT;
-    private final int[][] plane;
+    private final Cell[][] plane;
+    private final int width;
+    private final int height;
+
     private final HashMap<Integer, Obstacle> obstacles;
-    private Coordinates userLocation;
+    private final Collection<Coordinates> occupiedCoords;
 
-    public Map(int PLANE_WIDTH, int PLANE_HEIGHT) {
 
-        this.PLANE_WIDTH = PLANE_WIDTH;
-        this.PLANE_HEIGHT = PLANE_HEIGHT;
+    public Map(int width, int height) {
 
-        plane = new int[PLANE_HEIGHT][PLANE_WIDTH];
+        occupiedCoords = new HashSet<>();
+
+        this.width = width;
+        this.height = height;
+
+        plane = new Cell[height][width];
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                plane[x][y] = new Cell(); // blank cell
+            }
+        }
+
         obstacles = new HashMap<>();
 
         checkMap();
@@ -28,63 +37,39 @@ public class Map {
 
 
     public void addObstacle(Obstacle obstacle) {
-        checkObstacle(obstacle);
 
+        checkObstacle(obstacle);
         for (Coordinates coordinate : obstacle.getLocation()) {
             occupiedCoords.add(coordinate);
             int x = coordinate.getX();
             int y = coordinate.getY();
-            plane[y][x] = -1;
+            plane[y][x].setObstacle(obstacle);
         }
         obstacles.put(obstacle.getObstacleID(), obstacle);
 
     }
 
     public void removeObstacle(Obstacle obstacle) {
-
         if (obstacle != null && obstacles.containsKey(obstacle.getObstacleID())) {
             for (Coordinates coordinate : obstacle.getLocation()) {
                 occupiedCoords.remove(coordinate);
                 int x = coordinate.getX();
                 int y = coordinate.getY();
-                plane[y][x] = 0;
+                plane[y][x].setObstacle(null);
             }
             obstacles.remove(obstacle.getObstacleID());
-        } else {
-            System.out.println("Obstacle doesn't exist");
-        }
-
-    }
-
-
-    //change this to list<coordinates>
-    public void addRouteToPlane(List<Coordinates> route) {
-
-        for (var c : route) {
-            plane[c.getY()][c.getX()] = 1;
         }
     }
-
-    public void removeRouteFromPlane(List<Coordinates> route) {
-        for (var c : route) {
-            plane[c.getY()][c.getX()] = 0;
-        }
-    }
-
 
 
     //Invariants
-    public void checkMap() {
+    private void checkMap() {
         Preconditions.checkNotNull(plane, "Plane can't be null");
-        Preconditions.checkState(PLANE_WIDTH > 0, "Plane Width can't be 0");
-        Preconditions.checkState(PLANE_HEIGHT > 0, "Plane Height can't be 0");
-
-//        Preconditions.checkNotNull(userLocation, "userLocation can't be null");
-//        Preconditions.checkState(withinMap(userLocation), "userLocation has to be within Map's bounds");
+        Preconditions.checkState(width > 0, "Plane Width can't be 0");
+        Preconditions.checkState(height > 0, "Plane Height can't be 0");
 
         checkObstacles();
     }
-
 
     public boolean coordWithinMap(Coordinates coordinates) {
         boolean inMap = false;
@@ -92,8 +77,8 @@ public class Map {
         int x = coordinates.getX();
         int y = coordinates.getY();
 
-        if (0 <= x && x < PLANE_WIDTH &&
-                0 <= y && y < PLANE_HEIGHT)
+        if (0 <= x && x < width &&
+                0 <= y && y < height)
         {
             inMap = true;
         }
@@ -101,8 +86,7 @@ public class Map {
         return inMap;
     }
 
-
-    public boolean obsWithinMap(Obstacle obstacle) {
+    private boolean obsWithinMap(Obstacle obstacle) {
 
         boolean inMap = true;
         var location = obstacle.getLocation();
@@ -183,34 +167,16 @@ public class Map {
         return isRectangle;
     }
 
-
-    //Exercise Tracker Calls for its Invariants
-    public boolean isObstacleBlockRoute(List<Coordinates> route) {
-
-        for (Coordinates c : route) {
-            if (occupiedCoords.contains(c)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public boolean isRouteWithinMap(List<Coordinates> route) {
-        for (Coordinates c : route) {
-            if (!coordWithinMap(c)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-
     //Getters
     public HashMap<Integer, Obstacle> getObstacles() {
         return obstacles;
     }
 
-    public int[][] getPlane() {
+    public Cell[][] getPlane() {
         return plane;
+    }
+
+    public Collection<Coordinates> getOccupiedCoords() {
+        return occupiedCoords;
     }
 }
