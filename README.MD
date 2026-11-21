@@ -2,9 +2,19 @@
 **Author: Yudil Pariyar<br>**
 ---
 
+
 ### Instructions to run the application
 The app has been built and tested to be run in IntelliJ. Open the project there, open the "ca.umantioba.ca.pariyary" folder,
 then the "TrackerMain.java" file. Finally, click "Current File" in the top menu bar and run!
+
+### Overview
+
+<small>Kudh is an exercise tracker. Users are able to track their activities within a map (2D Matrix).
+Users are able to choose between 3 activities: Run, Walk and Bike.
+It stores their activities with information including start date and time, end date and time, and route taken.
+Users are also able to access their past activities. Users have access to a feed where they can see activities of people
+they follow. Users are able to follow/unfollow people within and make changes to their accounts (change password/username
+, delete activities etc)
 
 
 ### Resources
@@ -19,6 +29,189 @@ Learned about Manhattan distance to ensure that Activity routes are continuous f
 - Addition of logic, ui and exception packages.
 - Moved all app logic function from ExcessiveTracker class to the logic layer
 - REPL is commented out to allow the program to compile
+
+## Domain model
+
+### Diagram
+
+Below is the Domain model diagram.
+```mermaid
+classDiagram
+    direction TB
+    class ExerciseTracker {
+        - Collection~User~ users
+        - User currUser;
+        - Map world
+        void addUser(User user) 
+    }
+
+    class User {
+        - String name
+        - String password
+        - HashMap~Integer, Activity~ historyActivity
+        - Collection~Coordinates~ activitiesOccupiedCoords;
+        - Collection~User~ followedUsers;
+
+        void follow(User)
+        void removeActivity(Activity)
+        void addActivity(Activity)
+        boolean checkPassword(String)
+    }
+
+    class Activity {
+        - static int countActivity;
+        - ActivityType type
+        - LocalDateTime startDateTime, endDateTime
+        - List~Coordinates~ route
+        - int activityID
+        void addCoordinates(Coordinates)
+        void removeCoordinates(Coordinates)
+    }
+
+    class ActivityType {
+        - WALK
+        - RUN
+        - BIKE
+    }
+
+    class Map {
+        - Cell[][] plane
+        - int width
+        - int height
+        - HashMap~Integer, Obstacle~ obstacles
+        - Collection~Coordinates~ occupiedCoords;
+        void addObstacle(Obstacle)
+        void removeObstacle(Obstacle)
+        boolean coordsWithinMap(Coordinates)
+        
+    }
+
+    class Cell {
+        - Obstacle obstacle
+
+        boolean isEmpty()
+    }
+
+    class Obstacle {
+        - ObstacleType type;
+        - static int countObstacle;
+        - int obstacleID;
+        - ArrayList~Coordinates~ location
+        void addCoordinates(Coordinates) ;
+        void removeCoordinates(Coordinates) ;
+    }
+
+    class ObstacleType {
+        - TREE
+        - BUILDING
+        - ROCK
+    }
+
+    class Coordinates {
+        - int x
+        - int y
+    }
+
+
+    class Stack~T~{
+        push(T)
+        T pop()
+        T peek()
+        int size()
+        boolean isEmpty()
+    }
+    <<interface>> Stack
+
+    class LinkedListStack~T~ {
+        Node head
+        int size
+
+        push(T)
+        T pop()
+        T peek()
+        int size()
+        boolean isEmpty()
+    }
+
+    class Node~T~ {
+        T data
+        Node~T~ next
+    }
+
+    LinkedListStack ..|> Stack
+    LinkedListStack --* Node
+
+    <<enumuration>> ActivityType
+    <<enumuration>> ObstacleType
+
+    note for ExerciseTracker " Invariants:
+    * users != null
+    * loop through users to ensure no null user exists.
+    * map != null
+    * loop through activities in users' historyActivity to ensure
+    &emsp;- activity's route does not go through World's obstacles
+    &emsp;- activity's route is within World's bounds
+    
+    "
+    note for User "Invariants:
+        * name != null
+        * password != null
+        * followedUsers != null
+        * name.length() > 0
+        * password.length() > 0
+        * loop through historyActivity to ensure no null Activities exists.
+        * loop through activitiesOccupiedCoords to ensure no null Coordinates exists.
+        * loop through followedUsers to ensure no null Users exists.
+    "
+    note for Activity "Invariants:
+        * type != null
+        * startDateTime, endDateTime != null
+        * startDateTime &lt; endDateTime
+        * route != null
+        * route.size > 0
+        * loop through route to ensure no null Coordinates
+        "
+    note for Map "Invariants:
+        * plane != null
+        * planeWidth, planeHeight &gt; 0
+        * obstacles != null
+        * loop through obstacles and ensure
+        &emsp;- obstacle is not null
+        &emsp;- obstacle is within map's bounds
+        &emsp;- obstacle doesn't occupy coordinates occupied by other obstacles
+        &emsp;- obstacle is rectangular
+    "
+    note for Obstacle "Invariants:
+        * type != null
+        * location != null
+        * location.size > 0
+        * loop through location to ensure no null Coordinates exists
+    "
+    note for Coordinates "Invariants:
+        * x, y != null
+    "
+
+    note for LinkedStack "Invariants:
+        * size >= 0
+        * if size >= 1 then head != null
+    "
+
+    note for Node "Invariants:
+        * value != null
+    "
+
+    ExerciseTracker --* User
+    ExerciseTracker --* Map
+    Map --* Coordinates
+    Activity --o Coordinates
+    Map --* Obstacle
+    Map --* Cell
+    Obstacle --o Coordinates
+    User --* Activity
+    Activity --* ActivityType
+    Obstacle --* ObstacleType
+```
+
 
 ### Flows of Interactions
 
@@ -243,195 +436,4 @@ checkFollowed -. user already followed .-> getUsername
 addToUser -. User followed .-> feed[[Show feed]]
 
 end
-```
-
-### Overview
-
-<small>Kudh is an exercise tracker. Users are able to track their activities within a map (2D Matrix).
-Users are able to choose between 3 activities: Run, Walk and Bike.
-It stores their activities with information including start date and time, end date and time, and route taken.
-Users are also able to access their past activities. Users have access to a feed where they can see activities of people
-they follow. Users are able to follow/unfollow people within and make changes to their accounts (change password/username
-, delete activities etc)
-
-## Domain model
-
-### Diagram
-
-Below is the Domain model diagram.
-```mermaid
-classDiagram
-    direction TB
-    class ExerciseTracker {
-        - Collection~User~ users
-        - User currUser;
-        - Map world
-        void addUser(User user) 
-    }
-
-    class User {
-        - String name
-        - String password
-        - HashMap~Integer, Activity~ historyActivity
-        - Collection~Coordinates~ activitiesOccupiedCoords;
-        - Collection~User~ followedUsers;
-
-        void follow(User)
-        void removeActivity(Activity)
-        void addActivity(Activity)
-        boolean checkPassword(String)
-    }
-
-    class Activity {
-        - static int countActivity;
-        - ActivityType type
-        - LocalDateTime startDateTime, endDateTime
-        - List~Coordinates~ route
-        - int activityID
-        void addCoordinates(Coordinates)
-        void removeCoordinates(Coordinates)
-    }
-
-    class ActivityType {
-        - WALK
-        - RUN
-        - BIKE
-    }
-
-    class Map {
-        - Cell[][] plane
-        - int width
-        - int height
-        - HashMap~Integer, Obstacle~ obstacles
-        - Collection~Coordinates~ occupiedCoords;
-        void addObstacle(Obstacle)
-        void removeObstacle(Obstacle)
-        boolean coordsWithinMap(Coordinates)
-        
-    }
-
-    class Cell {
-        - Obstacle obstacle
-
-        boolean isEmpty()
-    }
-
-    class Obstacle {
-        - ObstacleType type;
-        - static int countObstacle;
-        - int obstacleID;
-        - ArrayList~Coordinates~ location
-        void addCoordinates(Coordinates) ;
-        void removeCoordinates(Coordinates) ;
-    }
-
-    class ObstacleType {
-        - TREE
-        - BUILDING
-        - ROCK
-    }
-
-    class Coordinates {
-        - int x
-        - int y
-    }
-
-
-    class Stack~T~{
-        push(T)
-        T pop()
-        T peek()
-        int size()
-        boolean isEmpty()
-    }
-    <<interface>> Stack
-
-    class LinkedListStack~T~ {
-        Node head
-        int size
-
-        push(T)
-        T pop()
-        T peek()
-        int size()
-        boolean isEmpty()
-    }
-
-    class Node~T~ {
-        T data
-        Node~T~ next
-    }
-
-    LinkedListStack ..|> Stack
-    LinkedListStack --* Node
-
-    <<enumuration>> ActivityType
-    <<enumuration>> ObstacleType
-
-    note for ExerciseTracker " Invariants:
-    * users != null
-    * loop through users to ensure no null user exists.
-    * map != null
-    * loop through activities in users' historyActivity to ensure
-    &emsp;- activity's route does not go through World's obstacles
-    &emsp;- activity's route is within World's bounds
-    
-    "
-    note for User "Invariants:
-        * name != null
-        * password != null
-        * followedUsers != null
-        * name.length() > 0
-        * password.length() > 0
-        * loop through historyActivity to ensure no null Activities exists.
-        * loop through activitiesOccupiedCoords to ensure no null Coordinates exists.
-        * loop through followedUsers to ensure no null Users exists.
-    "
-    note for Activity "Invariants:
-        * type != null
-        * startDateTime, endDateTime != null
-        * startDateTime &lt; endDateTime
-        * route != null
-        * route.size > 0
-        * loop through route to ensure no null Coordinates
-        "
-    note for Map "Invariants:
-        * plane != null
-        * planeWidth, planeHeight &gt; 0
-        * obstacles != null
-        * loop through obstacles and ensure
-        &emsp;- obstacle is not null
-        &emsp;- obstacle is within map's bounds
-        &emsp;- obstacle doesn't occupy coordinates occupied by other obstacles
-        &emsp;- obstacle is rectangular
-    "
-    note for Obstacle "Invariants:
-        * type != null
-        * location != null
-        * location.size > 0
-        * loop through location to ensure no null Coordinates exists
-    "
-    note for Coordinates "Invariants:
-        * x, y != null
-    "
-
-    note for LinkedStack "Invariants:
-        * size >= 0
-        * if size >= 1 then head != null
-    "
-
-    note for Node "Invariants:
-        * value != null
-    "
-
-    ExerciseTracker --* User
-    ExerciseTracker --* Map
-    Map --* Coordinates
-    Activity --o Coordinates
-    Map --* Obstacle
-    Map --* Cell
-    Obstacle --o Coordinates
-    User --* Activity
-    Activity --* ActivityType
-    Obstacle --* ObstacleType
 ```
