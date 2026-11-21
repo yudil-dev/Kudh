@@ -49,18 +49,19 @@ public class Map {
 
     }
 
-    public void removeObstacle(Obstacle obstacle) {
-        if (obstacle != null && obstacles.containsKey(obstacle.getObstacleID())) {
-            for (Coordinates coordinate : obstacle.getLocation()) {
-                occupiedCoords.remove(coordinate);
-                int x = coordinate.getX();
-                int y = coordinate.getY();
-                plane[y][x].setObstacle(null);
-            }
-            obstacles.remove(obstacle.getObstacleID());
-        }
-    }
+    public boolean coordWithinMap(Coordinates coordinates) {
+        boolean inMap = false;
 
+        int x = coordinates.getX();
+        int y = coordinates.getY();
+
+        if (0 <= x && x < width &&
+                0 <= y && y < height) {
+            inMap = true;
+        }
+
+        return inMap;
+    }
 
     //Invariants
     private void checkMap() {
@@ -71,21 +72,6 @@ public class Map {
         checkObstacles();
     }
 
-    public boolean coordWithinMap(Coordinates coordinates) {
-        boolean inMap = false;
-
-        int x = coordinates.getX();
-        int y = coordinates.getY();
-
-        if (0 <= x && x < width &&
-                0 <= y && y < height)
-        {
-            inMap = true;
-        }
-
-        return inMap;
-    }
-
     private boolean obsWithinMap(Obstacle obstacle) {
 
         boolean inMap = true;
@@ -93,7 +79,7 @@ public class Map {
 
         int i = 0;
         while (i < location.size() && inMap) {
-            Coordinates c =  location.get(i);
+            Coordinates c = location.get(i);
             if (!coordWithinMap(c)) {
                 inMap = false;
             }
@@ -138,7 +124,7 @@ public class Map {
         return valid;
     }
 
-    private boolean isObsRectangle(Obstacle o) {
+    public boolean isObsRectangle(Obstacle o) {
         var location = o.getLocation();
         boolean isRectangle = false;
 
@@ -149,7 +135,6 @@ public class Map {
             int minY = Integer.MAX_VALUE;
             int maxY = Integer.MIN_VALUE;
 
-            // Find bounds
             for (Coordinates c : location) {
                 minX = Math.min(minX, c.getX());
                 maxX = Math.max(maxX, c.getX());
@@ -157,15 +142,32 @@ public class Map {
                 maxY = Math.max(maxY, c.getY());
             }
 
-            int rectangleArea = (maxX - minX + 1) * (maxY - minY + 1);
-            // Rectangle must contain every point in the bounding box
-            if (location.size() == rectangleArea) {
-                isRectangle = true;
+            isRectangle = true;
+
+            for (int x = minX; x <= maxX && isRectangle; x++) {
+                for (int y = minY; y <= maxY && isRectangle; y++) {
+                    if (!location.contains(new Coordinates(x, y))) {
+                        isRectangle = false;
+                    }
+                }
             }
         }
 
         return isRectangle;
     }
+
+
+    public boolean coordInObstacle(Coordinates coordinate) {
+        Preconditions.checkNotNull(coordinate, "coordinate cannot be null");
+
+        for (Obstacle obstacle : obstacles.values()) {
+            if (obstacle.getLocation().contains(coordinate)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     //Getters
     public HashMap<Integer, Obstacle> getObstacles() {
@@ -179,4 +181,5 @@ public class Map {
     public Collection<Coordinates> getOccupiedCoords() {
         return occupiedCoords;
     }
+
 }

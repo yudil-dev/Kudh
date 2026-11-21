@@ -43,7 +43,7 @@ public class Coordinates {
 
 
     //Invariant Checks
-    public void checkCoordinates() {
+    private void checkCoordinates() {
         Preconditions.checkNotNull(x, "x can't be null");
         Preconditions.checkNotNull(y, "y can't be null");
     }

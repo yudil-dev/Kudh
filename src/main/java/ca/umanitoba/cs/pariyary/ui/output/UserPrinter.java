@@ -1,4 +1,4 @@
-package ca.umanitoba.cs.pariyary.output;
+package ca.umanitoba.cs.pariyary.ui.output;
 
 import ca.umanitoba.cs.pariyary.model.Activity;
 import ca.umanitoba.cs.pariyary.model.User;
@@ -19,6 +19,19 @@ public class UserPrinter {
         System.out.println("Total distance of activities in last 30 days is " + totalDistanceCurrMonth + "kms");
     }
 
+    public static void printUser(User user) {
+        System.out.printf("Username: %s", user.getUsername());
+        System.out.println();
+        System.out.println("Activities:");
+        for (Activity activity : user.getHistoryActivity().values()) {
+            ActivityPrinter.print(activity);
+        }
+        System.out.println("Followed:");
+        for (User followedUser: user.getFollowedUsers()) {
+            System.out.println(followedUser.getUsername());
+        }
+    }
+
     private static int sumActivitiesSince(User user, LocalDateTime cutoff) {
         int total = 0;
 
@@ -31,15 +44,15 @@ public class UserPrinter {
         return total;
     }
 
-    public static int DistanceTotalLast7Days(User user) {
+    private static int DistanceTotalLast7Days(User user) {
         return sumActivitiesSince(user, LocalDateTime.now().minusDays(7));
     }
 
-    public static int DistanceTotalLast30Days(User user) {
+    private static int DistanceTotalLast30Days(User user) {
         return sumActivitiesSince(user, LocalDateTime.now().minusMonths(1));
     }
 
-    public static int ActivitesDistanceTotal(User user) {
+    private static int ActivitesDistanceTotal(User user) {
         return sumActivitiesSince(user, null);
     }
 }

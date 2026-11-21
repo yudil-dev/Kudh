@@ -1,79 +1,42 @@
 package ca.umanitoba.cs.pariyary.model;
 
+import ca.umanitoba.cs.pariyary.model.Activity;
+import ca.umanitoba.cs.pariyary.model.Coordinates;
+import ca.umanitoba.cs.pariyary.model.Map;
+import ca.umanitoba.cs.pariyary.model.User;
 import com.google.common.base.Preconditions;
+
+import java.util.ArrayList;
+import java.util.Collection;
 
 public class ExerciseTracker {
 
-    private Map world;
-    private final User user;
+    private final Collection<User> users;
+    private final Map world;
 
-    public ExerciseTracker(User user, Map world) {
-        this.user = user;
+    public ExerciseTracker(Map world) {
         this.world = world;
-
-//      checkExerciseTracker();
+        this.users = new ArrayList<>();
+        checkExerciseTracker();
     }
 
-    public ExerciseTracker() {
-        this.user = new User("Default");
-        this.world = null;
+    public void addUser(User user) {
+        Preconditions.checkNotNull(user, "User cannot be null");
+        users.add(user);
     }
 
     public Map getMap() {
         return world;
     }
 
-    public User getUser() {
-        return user;
+    public Collection<User> getUsers() {
+        return users;
     }
 
-    public void setWorld(Map world) {
-        Preconditions.checkNotNull(world);
-        this.world = world;
-    }
 
+    //Invariant checks
     private void checkExerciseTracker() {
-        Preconditions.checkNotNull(user, "User can't be null");
         Preconditions.checkNotNull(world, "Map can't be null");
+        Preconditions.checkNotNull(users, "Users can't be null");
     }
-
-    //checks if activity's route is within map and not is not obstructing with obstacles
-    private void checkActivity(Activity activity) {
-        Preconditions.checkNotNull(activity, "Activity can't be null");
-        Preconditions.checkState(isActivityRouteWithinMap(activity), "Activity Route not within Map's Bounds");
-        Preconditions.checkState(isObstacleBlockActivityRoute(activity), "Activity Route goes through Obstacle");
-    }
-
-    private boolean isActivityRouteWithinMap(Activity activity) {
-        for (Coordinates c : activity.getRoute()) {
-            if (!world.coordWithinMap(c)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public boolean isObstacleBlockActivityRoute(Activity activity) {
-        for (Coordinates c : activity.getRoute()) {
-            if (world.getOccupiedCoords().contains(c)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public void addActivityToUser(Activity activity) {
-        checkActivity(activity);
-        user.addActivity(activity);
-    }
-
-    public void removeActivityFromUser(Activity activity) {
-        checkActivity(activity);
-        user.removeActivity(activity);
-    }
-
-    public void removeWorld() {
-        this.world = null;
-    }
-
 }

@@ -1,5 +1,7 @@
 package ca.umanitoba.cs.pariyary.model;
 
+import ca.umanitoba.cs.pariyary.exceptions.InvalidObstacleLocationException;
+import ca.umanitoba.cs.pariyary.exceptions.InvalidObstacleTypeException;
 import com.google.common.base.Preconditions;
 
 import java.util.ArrayList;
@@ -17,31 +19,10 @@ public class Obstacle {
 
     public Obstacle(ObstacleType type, List<Coordinates> location) {
         this.type = type;
-        this.location = location;
+        this.location = new ArrayList<>(location);;
         obstacleID = ++countObstacle;
         checkObstacle();
     }
-
-//    public Obstacle() {
-//        this.location = new ArrayList<>();
-//        obstacleID = ++countObstacle;
-//    }
-
-//
-    public void addCoord(Coordinates coordToAdd) {
-
-        if (!location.contains(coordToAdd)) {
-            location.add(coordToAdd);
-        }
-        checkObstacle();
-
-    }
-
-    public void removeCoord(Coordinates coordToRemove) {
-        location.remove(coordToRemove);
-        checkObstacle();
-    }
-
 
     @Override
     public String toString() {
@@ -54,7 +35,7 @@ public class Obstacle {
     }
 
     public List<Coordinates> getLocation() {
-        return location;
+        return new ArrayList<>(location);
     }
 
     public int getObstacleID() {
@@ -83,12 +64,53 @@ public class Obstacle {
     }
 
     //Invariant
-    public void checkObstacle() {
+    private void checkObstacle() {
+        Preconditions.checkNotNull(type, "Type cannot be null");
         Preconditions.checkNotNull(location, "Location can't be null");
         Preconditions.checkState(!location.isEmpty(), "Location can't be empty");
         for (var coordinate : location) {
             Preconditions.checkNotNull(coordinate, "Coordinates can't be null");
         }
+    }
+
+    public static class Builder {
+        private ObstacleType type;
+        private final List<Coordinates> location;
+
+        public Builder() {
+            type = null;
+            location = new ArrayList<>();
+        }
+
+        public Builder type(ObstacleType type) throws InvalidObstacleTypeException {
+            if (type == null) {
+                throw new InvalidObstacleTypeException();
+            }
+            this.type = type;
+            return this;
+        }
+
+
+        public Builder location(List<Coordinates> location) throws InvalidObstacleLocationException {
+            if (location == null || location.isEmpty()) {
+                throw new InvalidObstacleLocationException();
+            }
+
+            for (Coordinates c : location) {
+                if (c == null) {
+                    throw new InvalidObstacleLocationException();
+                }
+            }
+
+            this.location.clear();
+            this.location.addAll(location);
+            return this;
+        }
+
+        public Obstacle build() {
+            return new Obstacle(type, new ArrayList<>(location));
+        }
+
     }
 
 }

@@ -1,5 +1,6 @@
 package ca.umanitoba.cs.pariyary.model;
 
+import ca.umanitoba.cs.pariyary.exceptions.*;
 import com.google.common.base.Preconditions;
 
 import java.time.LocalDateTime;
@@ -63,7 +64,7 @@ public class Activity {
 
 
     public List<Coordinates> getRoute() {
-        return route;
+        return new ArrayList<>(route);
     }
 
     public int getActivityID() {
@@ -99,7 +100,7 @@ public class Activity {
         Preconditions.checkNotNull(startDateTime, "startDateTime can't be null");
         Preconditions.checkNotNull(endDateTime, "endDateTime can't be null");
         Preconditions.checkState(startDateTime.isBefore(endDateTime),
-                "StartDateTime cannot be less than or equal to endDateTime ");
+                "StartDateTime must be before endDateTime ");
 
         Preconditions.checkNotNull(route, "route can't be null");
         Preconditions.checkState(!route.isEmpty(), "route can't be empty");
@@ -110,6 +111,66 @@ public class Activity {
         for (var coordinates : route) {
             Preconditions.checkNotNull(coordinates, "coordinates can't be null");
         }
+    }
+
+    public static class Builder {
+        private ActivityType type;
+        private LocalDateTime startDateTime;
+        private LocalDateTime endDateTime;
+        private final List<Coordinates> route;
+
+        public Builder() {
+            type = null;
+            startDateTime = null;
+            endDateTime = null;
+            route = new ArrayList<>();
+        }
+
+        public Builder type(ActivityType type) throws InvalidActivityTypeException {
+            if (type == null) {
+                throw new InvalidActivityTypeException();
+            }
+            this.type = type;
+            return this;
+        }
+
+        public Builder startDateTime(LocalDateTime startDateTime) throws InvalidStartDateTimeException {
+            if (startDateTime == null) {
+                throw new InvalidStartDateTimeException();
+            }
+            this.startDateTime = startDateTime;
+            return this;
+        }
+
+        public Builder endDateTime(LocalDateTime endDateTime) throws InvalidEndDateTimeException {
+            if (endDateTime == null || startDateTime == null || endDateTime.isBefore(startDateTime)) {
+                throw new InvalidEndDateTimeException();
+            }
+            this.endDateTime = endDateTime;
+            return this;
+        }
+
+        public Builder route(List<Coordinates> route) throws InvalidRouteException{
+
+            if (route == null || route.isEmpty()) {
+                throw new InvalidRouteException();
+            }
+
+            for (Coordinates c : route) {
+                if (c == null) {
+                    throw new InvalidRouteException();
+                }
+            }
+
+            this.route.clear();
+            this.route.addAll(route);
+            return this;
+        }
+
+        public Activity build() {
+            return new Activity(type, startDateTime, endDateTime, new ArrayList<>(route));
+        }
+
     }
 
 }
